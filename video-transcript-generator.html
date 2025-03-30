@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Transcript Generator | Multi-Tool Suite</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --gray: #6c757d;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .header {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .container:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        .tool-header {
+            background: var(--primary);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .tool-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .tool-description {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .tool-content {
+            padding: 30px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .upload-area.active {
+            border-color: var(--success);
+            background-color: rgba(46, 204, 113, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+        
+        .upload-subtext {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .video-preview {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .options-panel {
+            background-color: var(--light);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .options-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .option-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .option-label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        
+        .option-select, .option-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .option-select:focus, .option-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            text-align: center;
+        }
+        
+        .button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .button:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .button-icon {
+            margin-right: 8px;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            color: var(--gray);
+            text-align: center;
+        }
+        
+        .transcript-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .transcript-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .transcript-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .transcript-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            padding: 8px 16px;
+            background: var(--light);
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        
+        .action-button:hover {
+            background: #e9ecef;
+        }
+        
+        .action-icon {
+            margin-right: 5px;
+            font-size: 14px;
+        }
+        
+        .transcript-content {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+        
+        .timestamp {
+            color: var(--primary);
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            font-size: 20px;
+        }
+        
+        .toast-message {
+            font-size: 14px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 10px;
+            }
+            
+            .tool-header {
+                padding: 20px;
+            }
+            
+            .tool-title {
+                font-size: 20px;
+            }
+            
+            .tool-content {
+                padding: 20px;
+            }
+            
+            .upload-area {
+                padding: 30px 15px;
+            }
+            
+            .upload-icon {
+                font-size: 36px;
+            }
+            
+            .button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+        
+        .time-marker {
+            cursor: pointer;
+            color: var(--primary);
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .time-marker:hover {
+            text-decoration: underline;
+        }
+        
+        .sentence {
+            display: inline;
+        }
+        
+        .highlight {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">MultiTools</div>
+        <div class="tagline">Simple tools for everyday tasks</div>
+    </div>
+    
+    <div class="container">
+        <div class="tool-header">
+            <h1 class="tool-title">Video Transcript Generator</h1>
+            <p class="tool-description">Convert your video content into accurate, searchable text</p>
+        </div>
+        
+        <div class="tool-content">
+            <div class="upload-area" id="uploadArea">
+                <input type="file" accept="video/*" id="videoInput" class="file-input">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <p class="upload-text">Drag and drop your video file here</p>
+                <p class="upload-subtext">or click to browse files (Max size: 500MB)</p>
+            </div>
+            
+            <video id="videoPreview" class="video-preview" controls></video>
+            
+            <div class="options-panel">
+                <h3 class="options-title">Transcription Options</h3>
+                
+                <div class="option-group">
+                    <div style="flex: 1;">
+                        <label class="option-label">Language</label>
+                        <select class="option-select" id="languageSelect">
+                            <option value="en-US">English (US)</option>
+                            <option value="en-GB">English (UK)</option>
+                            <option value="es">Spanish</option>
+                            <option value="fr">French</option>
+                            <option value="de">German</option>
+                            <option value="ja">Japanese</option>
+                            <option value="zh">Chinese (Simplified)</option>
+                        </select>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <label class="option-label">Add Timestamps</label>
+                        <select class="option-select" id="timestampSelect">
+                            <option value="none">No timestamps</option>
+                            <option value="sentence" selected>Every sentence</option>
+                            <option value="paragraph">Every paragraph</option>
+                            <option value="minute">Every minute</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <div style="flex: 1;">
+                        <label class="option-label">Speaker Identification</label>
+                        <select class="option-select" id="speakerSelect">
+                            <option value="auto">Automatic detection</option>
+                            <option value="none">No speaker labels</option>
+                            <option value="manual">Manual entry</option>
+                        </select>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <label class="option-label">Output Format</label>
+                        <select class="option-select" id="formatSelect">
+                            <option value="plain">Plain Text</option>
+                            <option value="srt">SRT Subtitles</option>
+                            <option value="vtt">VTT Subtitles</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="generateBtn" class="button" disabled>
+                <i class="fas fa-magic button-icon"></i>Generate Transcript
+            </button>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">Processing video... 0%</p>
+            </div>
+            
+            <div class="transcript-container" id="transcriptContainer">
+                <div class="transcript-header">
+                    <h3 class="transcript-title">Generated Transcript</h3>
+                    <div class="transcript-actions">
+                        <button class="action-button" id="copyBtn">
+                            <i class="fas fa-copy action-icon"></i>Copy
+                        </button>
+                        <button class="action-button" id="downloadBtn">
+                            <i class="fas fa-download action-icon"></i>Download
+                        </button>
+                    </div>
+                </div>
+                <div class="transcript-content" id="transcriptContent"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        &copy; 2025 MultiTools Suite. All rights reserved.
+    </div>
+    
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle toast-icon"></i>
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const uploadArea = document.getElementById('uploadArea');
+            const videoInput = document.getElementById('videoInput');
+            const videoPreview = document.getElementById('videoPreview');
+            const generateBtn = document.getElementById('generateBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const transcriptContainer = document.getElementById('transcriptContainer');
+            const transcriptContent = document.getElementById('transcriptContent');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            
+            // Upload area event listeners
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('active');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('active');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('active');
+                
+                if (e.dataTransfer.files.length) {
+                    videoInput.files = e.dataTransfer.files;
+                    handleFileSelect();
+                }
+            });
+            
+            videoInput.addEventListener('change', handleFileSelect);
+            
+            function handleFileSelect() {
+                const file = videoInput.files[0];
+                
+                if (file) {
+                    // Check if file is a video
+                    if (!file.type.startsWith('video/')) {
+                        showToast('Please select a valid video file.');
+                        return;
+                    }
+                    
+                    // Check file size (500MB limit)
+                    if (file.size > 500 * 1024 * 1024) {
+                        showToast('File size exceeds the 500MB limit.');
+                        return;
+                    }
+                    
+                    // Create video preview
+                    const videoURL = URL.createObjectURL(file);
+                    videoPreview.src = videoURL;
+                    videoPreview.style.display = 'block';
+                    
+                    // Enable generate button
+                    generateBtn.disabled = false;
+                    
+                    // Update upload area text
+                    uploadArea.querySelector('.upload-text').textContent = file.name;
+                    uploadArea.querySelector('.upload-subtext').textContent = formatFileSize(file.size);
+                    uploadArea.querySelector('.upload-icon').className = 'fas fa-check-circle upload-icon';
+                    uploadArea.querySelector('.upload-icon').style.color = 'var(--success)';
+                }
+            }
+            
+            generateBtn.addEventListener('click', generateTranscript);
+            
+            function generateTranscript() {
+                // Hide existing transcript
+                transcriptContainer.style.display = 'none';
+                
+                // Show progress bar
+                progressContainer.style.display = 'block';
+                
+                // Disable generate button
+                generateBtn.disabled = true;
+                
+                // Simulate progress (in a real app, this would be actual processing)
+                let progress = 0;
+                const interval = setInterval(function() {
+                    progress += Math.random() * 4;
+                    if (progress >= 100) {
+                        progress = 100;
+                        clearInterval(interval);
+                        setTimeout(completeTranscription, 500);
+                    }
+                    
+                    progressFill.style.width = progress + '%';
+                    progressText.textContent = `Processing video... ${Math.round(progress)}%`;
+                }, 200);
+            }
+            
+            function completeTranscription() {
+                // Hide progress
+                progressContainer.style.display = 'none';
+                
+                // Show transcript
+                transcriptContainer.style.display = 'block';
+                
+                // Enable generate button
+                generateBtn.disabled = false;
+                
+                // Generate a demo transcript
+                const language = document.getElementById('languageSelect').value;
+                const timestampOption = document.getElementById('timestampSelect').value;
+                const speakerOption = document.getElementById('speakerSelect').value;
+                const formatOption = document.getElementById('formatSelect').value;
+                
+                // Generate demo transcript based on options
+                generateDemoTranscript(language, timestampOption, speakerOption, formatOption);
+                
+                // Show success toast
+                showToast('Transcript generated successfully!');
+            }
+            
+            function generateDemoTranscript(language, timestampOption, speakerOption, formatOption) {
+                // Demo transcript sentences
+                const sentences = [
+                    "Welcome to this comprehensive guide on effective video marketing strategies for businesses.",
+                    "In today's digital landscape, video content has become essential for engaging with your audience.",
+                    "Studies show that users spend 88% more time on websites that include video content.",
+                    "Let's dive into the key components of a successful video marketing campaign.",
+                    "First, understand your target audience and create content that addresses their specific needs and pain points.",
+                    "Research shows that personalized video content generates up to 66% higher conversion rates.",
+                    "Second, optimize your videos for search engines by using relevant keywords in titles, descriptions, and tags.",
+                    "Don't forget to include closed captions and transcripts to improve accessibility and SEO performance.",
+                    "Third, keep your videos concise and focused on delivering value in the first 10 seconds.",
+                    "Viewer attention spans are shortening, with most engagement happening in the first 30 seconds of a video.",
+                    "Fourth, incorporate clear calls-to-action that guide viewers towards the next steps you want them to take.",
+                    "Strategic CTAs can increase conversion rates by up to 144% according to recent marketing studies.",
+                    "Fifth, analyze performance metrics regularly to refine your strategy based on real data.",
+                    "Key metrics to track include view count, watch time, engagement rate, and conversion attribution.",
+                    "Finally, maintain consistency in your posting schedule to build anticipation and loyalty with your audience.",
+                    "Regular content delivery can increase subscriber rates by up to 31% compared to sporadic publishing.",
+                    "Remember that high-quality video doesn't necessarily mean high-budget production.",
+                    "Authenticity often resonates more with audiences than perfectly polished content.",
+                    "As we conclude, I encourage you to start implementing these strategies in your next video marketing campaign.",
+                    "Thank you for watching, and don't forget to subscribe for more marketing insights and tips."
+                ];
+                
+                // Create transcript HTML
+                let html = '';
+                let currentTime = 0;
+                let paragraphCount = 0;
+                
+                if (formatOption === 'plain' || formatOption === 'json') {
+                    sentences.forEach((sentence, index) => {
+                        // Calculate a realistic timestamp
+                        currentTime += (sentence.length / 15) + (Math.random() * 2);
+                        const minutes = Math.floor(currentTime / 60);
+                        const seconds = Math.floor(currentTime % 60);
+                        const timestamp = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+                        
+                        if (index % 5 === 0) {
+                            paragraphCount++;
+                            html += '<p>';
+                        }
+                        
+                        // Add timestamp based on option
+                        let showTimestamp = false;
+                        if (timestampOption === 'sentence') {
+                            showTimestamp = true;
+                        } else if (timestampOption === 'paragraph' && index % 5 === 0) {
+                            showTimestamp = true;
+                        } else if (timestampOption === 'minute' && Math.floor(currentTime / 60) > Math.floor((currentTime - (sentence.length / 15)) / 60)) {
+                            showTimestamp = true;
+                        }
+                        
+                        // Add speaker if enabled
+                        if (speakerOption === 'auto' && index % 7 === 0) {
+                            html += `<strong>Speaker ${(paragraphCount % 2) + 1}:</strong> `;
+                        }
+                        
+                        // Add timestamp and sentence
+                        if (showTimestamp) {
+                            html += `<span class="time-marker" data-time="${currentTime.toFixed(1)}">[${timestamp}]</span>`;
+                        }
+                        
+                        html += `<span class="sentence">${sentence} </span>`;
+                        
+                        if ((index + 1) % 5 === 0 || index === sentences.length - 1) {
+                            html += '</p>';
+                        }
+                    });
+                } else if (formatOption === 'srt' || formatOption === 'vtt') {
+                    // Generate subtitle format
+                    sentences.forEach((sentence, index) => {
+                        currentTime += (sentence.length / 15) + (Math.random() * 2);
+                        const startTime = currentTime - (sentence.length / 15);
+                        
+                        const startMinutes = Math.floor(startTime / 60);
+                        const startSeconds = Math.floor(startTime % 60);
+                        const startMillis = Math.floor((startTime % 1) * 1000);
+                        
+                        const endMinutes = Math.floor(currentTime / 60);
+                        const endSeconds = Math.floor(currentTime % 60);
+                        const endMillis = Math.floor((currentTime % 1) * 1000);
+                        
+                        const startTimestamp = `${startMinutes.toString().padStart(2, '0')}:${startSeconds.toString().padStart(2, '0')},${startMillis.toString().padStart(3, '0')}`;
+                        const endTimestamp = `${endMinutes.toString().padStart(2, '0')}:${endSeconds.toString().padStart(2, '0')},${endMillis.toString().padStart(3, '0')}`;
+                        
+                        html += `${index + 1}<br>`;
+                        html += `${startTimestamp} --> ${endTimestamp}<br>`;
+                        html += `${sentence}<br><br>`;
+                    });
+                }
+                
+                transcriptContent.innerHTML = html;
+                
+                // Add event listeners to timestamps for video seeking
+                document.querySelectorAll('.time-marker').forEach(marker => {
+                    marker.addEventListener('click', function() {
+                        const timePosition = parseFloat(this.getAttribute('data-time'));
+                        videoPreview.currentTime = timePosition;
+                        videoPreview.play();
+                        
+                        // Highlight the current sentence
+                        document.querySelectorAll('.sentence').forEach(s => s.classList.remove('highlight'));
+                        this.nextElementSibling.classList.add('highlight');
+                    });
+                });
+            }
+            
+            // Copy button functionality
+            copyBtn.addEventListener('click', function() {
+                const text = transcriptContent.innerText;
+                navigator.clipboard.writeText(text).then(function() {
+                    showToast('Transcript copied to clipboard!');
+                }).catch(function() {
+                    showToast('Failed to copy transcript. Please try again.');
+                });
+            });
+            
+            // Download button functionality
+            downloadBtn.addEventListener('click', function() {
+                const text = transcriptContent.innerText;
+                const format = document.getElementById('formatSelect').value;
+                let filename = 'transcript';
+                let mimeType = 'text/plain';
+                
+                switch (format) {
+                    case 'srt':
+                        filename += '.srt';
+                        break;
+                    case 'vtt':
+                        filename += '.vtt';
+                        break;
+                    case 'json':
+                        filename += '.json';
+                        mimeType = 'application/json';
+                        break;
+                    default:
+                        filename += '.txt';
+                }
+                
+                const blob = new Blob([text], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showToast(`Transcript downloaded as ${filename}`);
+            });
+            
+            // Toast notification function
+            function showToast(message) {
+                toastMessage.textContent = message;
+                toast.classList.add('show');
+                
+                setTimeout(function() {
+                    toast.classList.remove('show');
+                }, 3000);
+            }
+            
+            // Helper function to format file size
+            function formatFileSize(bytes) {
+                if (bytes < 1024) {
+                    return bytes + ' bytes';
+                } else if (bytes < 1024 * 1024) {
+                    return (bytes / 1024).toFixed(1) + ' KB';
+                } else {
+                    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+                }
+            }
+        });
+    </script>
+</body>
+</html>
