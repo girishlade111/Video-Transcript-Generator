@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Transcript Generator | Multi-Tool Suite</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-dark: #3a56d4;
+            --secondary: #7209b7;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --success: #2ecc71;
+            --warning: #f39c12;
+            --danger: #e74c3c;
+            --gray: #6c757d;
+            --transition: all 0.3s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .header {
+            width: 100%;
+            max-width: 800px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .logo {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+        
+        .tagline {
+            font-size: 16px;
+            color: var(--gray);
+            margin-bottom: 20px;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            transition: var(--transition);
+        }
+        
+        .container:hover {
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+            transform: translateY(-5px);
+        }
+        
+        .tool-header {
+            background: var(--primary);
+            color: white;
+            padding: 25px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .tool-title {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+        
+        .tool-description {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        
+        .tool-content {
+            padding: 30px;
+        }
+        
+        .upload-area {
+            border: 2px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        .upload-area:hover {
+            border-color: var(--primary);
+            background-color: rgba(67, 97, 238, 0.05);
+        }
+        
+        .upload-area.active {
+            border-color: var(--success);
+            background-color: rgba(46, 204, 113, 0.05);
+        }
+        
+        .upload-icon {
+            font-size: 48px;
+            color: var(--gray);
+            margin-bottom: 15px;
+        }
+        
+        .upload-text {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 10px;
+        }
+        
+        .upload-subtext {
+            font-size: 14px;
+            color: var(--gray);
+        }
+        
+        .file-input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .video-preview {
+            max-width: 100%;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .options-panel {
+            background-color: var(--light);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .options-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: var(--dark);
+        }
+        
+        .option-group {
+            margin-bottom: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .option-label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: var(--dark);
+        }
+        
+        .option-select, .option-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        
+        .option-select:focus, .option-input:focus {
+            border-color: var(--primary);
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.2);
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 12px 24px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            width: 100%;
+            text-align: center;
+        }
+        
+        .button:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+        }
+        
+        .button:disabled {
+            background: var(--gray);
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .button-icon {
+            margin-right: 8px;
+        }
+        
+        .progress-container {
+            margin: 20px 0;
+            display: none;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 10px;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: var(--success);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 14px;
+            color: var(--gray);
+            text-align: center;
+        }
+        
+        .transcript-container {
+            margin-top: 30px;
+            display: none;
+        }
+        
+        .transcript-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .transcript-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+        
+        .transcript-actions {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .action-button {
+            padding: 8px 16px;
+            background: var(--light);
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            color: var(--dark);
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+        }
+        
+        .action-button:hover {
+            background: #e9ecef;
+        }
+        
+        .action-icon {
+            margin-right: 5px;
+            font-size: 14px;
+        }
+        
+        .transcript-content {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 20px;
+            height: 300px;
+            overflow-y: auto;
+            line-height: 1.7;
+            font-size: 16px;
+        }
+        
+        .timestamp {
+            color: var(--primary);
+            font-weight: 600;
+            margin-right: 10px;
+        }
+        
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: var(--dark);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 5px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            font-size: 20px;
+        }
+        
+        .toast-message {
+            font-size: 14px;
+        }
+        
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+            color: var(--gray);
+            font-size: 14px;
+        }
+        
+        .language-group {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        .language-search {
+            padding: 10px;
+            width: 100%;
+            border: none;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+        
+        .language-search:focus {
+            outline: none;
+            border-bottom-color: var(--primary);
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                border-radius: 10px;
+            }
+            
+            .tool-header {
+                padding: 20px;
+            }
+            
+            .tool-title {
+                font-size: 20px;
+            }
+            
+            .tool-content {
+                padding: 20px;
+            }
+            
+            .upload-area {
+                padding: 30px 15px;
+            }
+            
+            .upload-icon {
+                font-size: 36px;
+            }
+            
+            .button {
+                padding: 10px 20px;
+                font-size: 14px;
+            }
+        }
+        
+        .time-marker {
+            cursor: pointer;
+            color: var(--primary);
+            font-weight: bold;
+            display: inline-block;
+            margin-right: 8px;
+        }
+        
+        .time-marker:hover {
+            text-decoration: underline;
+        }
+        
+        .sentence {
+            display: inline;
+        }
+        
+        .highlight {
+            background-color: rgba(67, 97, 238, 0.1);
+            border-radius: 3px;
+        }
+        
+        .optgroup-label {
+            font-weight: bold;
+            padding: 8px 10px;
+            background-color: #f8f9fa;
+            display: block;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div class="logo">MultiTools</div>
+        <div class="tagline">Simple tools for everyday tasks</div>
+    </div>
+    
+    <div class="container">
+        <div class="tool-header">
+            <h1 class="tool-title">Video Transcript Generator</h1>
+            <p class="tool-description">Convert your video content into accurate, searchable text</p>
+        </div>
+        
+        <div class="tool-content">
+            <div class="upload-area" id="uploadArea">
+                <input type="file" accept="video/*" id="videoInput" class="file-input">
+                <i class="fas fa-cloud-upload-alt upload-icon"></i>
+                <p class="upload-text">Drag and drop your video file here</p>
+                <p class="upload-subtext">or click to browse files (Max size: 500MB)</p>
+            </div>
+            
+            <video id="videoPreview" class="video-preview" controls></video>
+            
+            <div class="options-panel">
+                <h3 class="options-title">Transcription Options</h3>
+                
+                <div class="option-group">
+                    <div style="flex: 1;">
+                        <label class="option-label">Language</label>
+                        <select class="option-select" id="languageSelect">
+                            <optgroup label="Popular Languages">
+                                <option value="en-US">English (US)</option>
+                                <option value="en-GB">English (UK)</option>
+                                <option value="en-IN">English (India)</option>
+                                <option value="es-ES">Spanish (Spain)</option>
+                                <option value="es-MX">Spanish (Mexico)</option>
+                                <option value="fr-FR">French</option>
+                                <option value="de-DE">German</option>
+                                <option value="hi-IN">Hindi</option>
+                                <option value="zh-CN">Chinese (Simplified)</option>
+                                <option value="ja-JP">Japanese</option>
+                            </optgroup>
+                            <optgroup label="Asian Languages">
+                                <option value="ar-SA">Arabic</option>
+                                <option value="bn-IN">Bengali</option>
+                                <option value="gu-IN">Gujarati</option>
+                                <option value="id-ID">Indonesian</option>
+                                <option value="ja-JP">Japanese</option>
+                                <option value="ko-KR">Korean</option>
+                                <option value="ms-MY">Malay</option>
+                                <option value="mr-IN">Marathi</option>
+                                <option value="fa-IR">Persian</option>
+                                <option value="ta-IN">Tamil</option>
+                                <option value="te-IN">Telugu</option>
+                                <option value="th-TH">Thai</option>
+                                <option value="tr-TR">Turkish</option>
+                                <option value="ur-PK">Urdu</option>
+                                <option value="vi-VN">Vietnamese</option>
+                            </optgroup>
+                            <optgroup label="European Languages">
+                                <option value="bg-BG">Bulgarian</option>
+                                <option value="hr-HR">Croatian</option>
+                                <option value="cs-CZ">Czech</option>
+                                <option value="da-DK">Danish</option>
+                                <option value="nl-NL">Dutch</option>
+                                <option value="et-EE">Estonian</option>
+                                <option value="fi-FI">Finnish</option>
+                                <option value="el-GR">Greek</option>
+                                <option value="hu-HU">Hungarian</option>
+                                <option value="it-IT">Italian</option>
+                                <option value="lv-LV">Latvian</option>
+                                <option value="lt-LT">Lithuanian</option>
+                                <option value="no-NO">Norwegian</option>
+                                <option value="pl-PL">Polish</option>
+                                <option value="pt-PT">Portuguese (Portugal)</option>
+                                <option value="pt-BR">Portuguese (Brazil)</option>
+                                <option value="ro-RO">Romanian</option>
+                                <option value="ru-RU">Russian</option>
+                                <option value="sk-SK">Slovak</option>
+                                <option value="sl-SI">Slovenian</option>
+                                <option value="sv-SE">Swedish</option>
+                                <option value="uk-UA">Ukrainian</option>
+                            </optgroup>
+                            <optgroup label="African Languages">
+                                <option value="am-ET">Amharic</option>
+                                <option value="ha-NG">Hausa</option>
+                                <option value="ig-NG">Igbo</option>
+                                <option value="sw-KE">Swahili</option>
+                                <option value="yo-NG">Yoruba</option>
+                                <option value="zu-ZA">Zulu</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <label class="option-label">Add Timestamps</label>
+                        <select class="option-select" id="timestampSelect">
+                            <option value="none">No timestamps</option>
+                            <option value="sentence" selected>Every sentence</option>
+                            <option value="paragraph">Every paragraph</option>
+                            <option value="minute">Every minute</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <div style="flex: 1;">
+                        <label class="option-label">Speaker Identification</label>
+                        <select class="option-select" id="speakerSelect">
+                            <option value="auto">Automatic detection</option>
+                            <option value="none">No speaker labels</option>
+                            <option value="manual">Manual entry</option>
+                        </select>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <label class="option-label">Output Format</label>
+                        <select class="option-select" id="formatSelect">
+                            <option value="plain">Plain Text</option>
+                            <option value="srt">SRT Subtitles</option>
+                            <option value="vtt">VTT Subtitles</option>
+                            <option value="json">JSON</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="option-group">
+                    <div style="flex: 1;">
+                        <label class="option-label">Transcription Accuracy</label>
+                        <select class="option-select" id="accuracySelect">
+                            <option value="standard">Standard</option>
+                            <option value="enhanced">Enhanced (for technical content)</option>
+                            <option value="high">High Precision (slower processing)</option>
+                        </select>
+                    </div>
+                    
+                    <div style="flex: 1;">
+                        <label class="option-label">Auto-translation</label>
+                        <select class="option-select" id="translationSelect">
+                            <option value="none">No translation</option>
+                            <option value="en">Translate to English</option>
+                            <option value="es">Translate to Spanish</option>
+                            <option value="fr">Translate to French</option>
+                            <option value="de">Translate to German</option>
+                            <option value="zh">Translate to Chinese</option>
+                            <option value="hi">Translate to Hindi</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="generateBtn" class="button" disabled>
+                <i class="fas fa-magic button-icon"></i>Generate Transcript
+            </button>
+            
+            <div class="progress-container" id="progressContainer">
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <p class="progress-text" id="progressText">Processing video... 0%</p>
+            </div>
+            
+            <div class="transcript-container" id="transcriptContainer">
+                <div class="transcript-header">
+                    <h3 class="transcript-title">Generated Transcript</h3>
+                    <div class="transcript-actions">
+                        <button class="action-button" id="copyBtn">
+                            <i class="fas fa-copy action-icon"></i>Copy
+                        </button>
+                        <button class="action-button" id="downloadBtn">
+                            <i class="fas fa-download action-icon"></i>Download
+                        </button>
+                        <button class="action-button" id="editBtn">
+                            <i class="fas fa-edit action-icon"></i>Edit
+                        </button>
+                    </div>
+                </div>
+                <div class="transcript-content" id="transcriptContent"></div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="footer">
+        &copy; 2025 MultiTools Suite. All rights reserved.
+    </div>
+    
+    <div class="toast" id="toast">
+        <i class="fas fa-info-circle toast-icon"></i>
+        <span class="toast-message" id="toastMessage"></span>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Elements
+            const uploadArea = document.getElementById('uploadArea');
+            const videoInput = document.getElementById('videoInput');
+            const videoPreview = document.getElementById('videoPreview');
+            const generateBtn = document.getElementById('generateBtn');
+            const progressContainer = document.getElementById('progressContainer');
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            const transcriptContainer = document.getElementById('transcriptContainer');
+            const transcriptContent = document.getElementById('transcriptContent');
+            const copyBtn = document.getElementById('copyBtn');
+            const downloadBtn = document.getElementById('downloadBtn');
+            const editBtn = document.getElementById('editBtn');
+            const toast = document.getElementById('toast');
+            const toastMessage = document.getElementById('toastMessage');
+            const languageSelect = document.getElementById('languageSelect');
+            const accuracySelect = document.getElementById('accuracySelect');
+            const translationSelect = document.getElementById('translationSelect');
+            
+            // Sample transcripts in different languages
+            const transcriptSamples = {
+                "en": [
+                    "Welcome to this comprehensive guide on effective video marketing strategies for businesses.",
+                    "In today's digital landscape, video content has become essential for engaging with your audience.",
+                    "Studies show that users spend 88% more time on websites that include video content.",
+                    "Let's dive into the key components of a successful video marketing campaign."
+                ],
+                "es": [
+                    "Bienvenido a esta guía completa sobre estrategias efectivas de marketing en video para empresas.",
+                    "En el panorama digital actual, el contenido de video se ha vuelto esencial para interactuar con su audiencia.",
+                    "Los estudios muestran que los usuarios pasan un 88% más de tiempo en sitios web que incluyen contenido de video.",
+                    "Profundicemos en los componentes clave de una campaña de marketing en video exitosa."
+                ],
+                "fr": [
+                    "Bienvenue dans ce guide complet sur les stratégies efficaces de marketing vidéo pour les entreprises.",
+                    "Dans le paysage numérique d'aujourd'hui, le contenu vidéo est devenu essentiel pour interagir avec votre audience.",
+                    "Les études montrent que les utilisateurs passent 88% plus de temps sur les sites Web qui incluent du contenu vidéo.",
+                    "Plongeons dans les composants clés d'une campagne de marketing vidéo réussie."
+                ],
+                "de": [
+                    "Willkommen zu diesem umfassenden Leitfaden für effektive Videomarketing-Strategien für Unternehmen.",
+                    "In der heutigen digitalen Landschaft ist Videoinhalt für die Interaktion mit Ihrem Publikum unerlässlich geworden.",
+                    "Studien zeigen, dass Benutzer 88% mehr Zeit auf Websites verbringen, die Videoinhalte enthalten.",
+                    "Lassen Sie uns die Schlüsselkomponenten einer erfolgreichen Videomarketing-Kampagne untersuchen."
+                ],
+                "hi": [
+                    "व्यवसायों के लिए प्रभावी वीडियो मार्केटिंग रणनीतियों पर इस व्यापक मार्गदर्शिका में आपका स्वागत है।",
+                    "आज के डिजिटल परिदृश्य में, अपने दर्शकों के साथ जुड़ने के लिए वीडियो सामग्री आवश्यक हो गई है।",
+                    "अध्ययन बताते हैं कि उपयोगकर्ता वीडियो सामग्री वाली वेबसाइटों पर 88% अधिक समय बिताते हैं।",
+                    "आइए एक सफल वीडियो मार्केटिंग अभियान के प्रमुख घटकों में गहराई से जानें।"
+                ],
+                "zh": [
+                    "欢迎阅读这份关于企业有效视频营销策略的综合指南。",
+                    "在当今的数字环境中，视频内容对于与受众互动变得至关重要。",
+                    "研究表明，用户在包含视频内容的网站上花费的时间增加了88%。",
+                    "让我们深入了解成功视频营销活动的关键组成部分。"
+                ],
+                "ja": [
+                    "ビジネスのための効果的なビデオマーケティング戦略に関するこの包括的なガイドへようこそ。",
+                    "今日のデジタル環境では、ビデオコンテンツはオーディエンスとの関わりに不可欠になっています。",
+                    "調査によると、ユーザーはビデオコンテンツを含むウェブサイトで88％多くの時間を費やしています。",
+                    "成功するビデオマーケティングキャンペーンの主要コンポーネントを詳しく見ていきましょう。"
+                ]
+            };
+            
+            // Upload area event listeners
+            uploadArea.addEventListener('dragover', function(e) {
+                e.preventDefault();
+                uploadArea.classList.add('active');
+            });
+            
+            uploadArea.addEventListener('dragleave', function() {
+                uploadArea.classList.remove('active');
+            });
+            
+            uploadArea.addEventListener('drop', function(e) {
+                e.preventDefault();
+                uploadArea.classList.remove('active');
+                
+                if (e.dataTransfer.files.length) {
+                    videoInput.files = e.dataTransfer.files;
+                    handleFileSelect();
+                }
+            });
+            
+            videoInput.addEventListener('change', handleFileSelect);
+            
+            function handleFileSelect() {
+                const file = videoInput.files[0];
+                
+                if (file) {
+                    // Check if file is a video
+                    if (!file.type.startsWith('video/')) {
+                        showToast('Please select a valid video file.');
+                        return;
+                    }
+                    
+                    // Check file size (500MB limit)
+                    if (file.size > 500 * 1024 * 1024) {
+                        showToast('File size exceeds the 500MB limit.');
+                        return;
+                    }
+                    
+                    // Create video preview
+                    const videoURL = URL.createObjectURL(file);
+                    videoPreview.src = videoURL;
+                    videoPreview.style.display = 'block';
+                    
+                    // Enable generate button
+                    generateBtn.disabled = false;
+                    
+                    // Update upload area text
+                    uploadArea.querySelector('.upload-text').textContent = file.name;
+                    uploadArea.querySelector('.upload-subtext').textContent = formatFileSize(file.size);
+                    uploadArea.querySelector('.upload-icon').className = 'fas fa-check-circle upload-icon';
+                    uploadArea.querySelector('.upload-icon').style.color = 'var(--success)';
+                }
+            }
+            
+            // Add event listener for language changes
+            languageSelect.addEventListener('change', function() {
+                // Update the translation select options based on selected language
+                updateTranslationOptions(this.value);
+            });
+            
+            function updateTranslationOptions(selectedLang) {
+                const langCode = selectedLang.split('-')[0];
+                
+                // Clear existing options except "No translation"
+                while (translationSelect.options.length > 1) {
+                    translationSelect.remove(1);
+                }
+                
+                // Add translation options excluding the currently selected language
+                const languages = {
+                    'en': 'English',
+                    'es': 'Spanish',
+                    'fr': 'French',
+                    'de': 'German',
+                    'zh': 'Chinese',
+                    'hi': 'Hindi',
+                    'ja': 'Japanese',
+                    'pt': 'Portuguese',
+                    'ru': 'Russian',
+                    'ar': 'Arabic'
+                };
+                
+                for (const [code, name] of Object.entries(languages)) {
+                    if (code !== langCode) {
+                        const option = document.createElement('option');
+                        option.value = code;
+                        option.textContent = `Translate to ${name}`;
+                        translationSelect.appendChild(option);
+                    }
+                }
+            }
+            
+            generateBtn.addEventListener('click', generateTranscript);
+            
+            function generateTranscript() {
+                // Hide existing transcript
+                transcriptContainer.style.display = 'none';
+                
+                // Show progress bar
+                progressContainer.style.display = 'block';
+                
+                // Disable generate button
+                generateBtn.disabled = true;
+                
+                // Get the selected language
+                const selectedLang = languageSelect.value;
+                
+                // Show a language-specific toast message
+                if (selectedLang.startsWith('hi')) {
+                    showToast('हिंदी में प्रतिलेखन शुरू हो गया है...');
+                } else if (selectedLang.startsWith('zh')) {
+                    showToast('转录已开始处理...');
+                } else if (selectedLang.startsWith('ja')) {
+                    showToast('文字起こしを開始しました...');
+                } else if (selectedLang.startsWith('es')) {
+                    showToast('Transcripción iniciada...');
+                } else if (selectedLang.startsWith('fr')) {
+                    showToast('Transcription commencée...');
+                } else if (selectedLang.startsWith('de')) {
+                    showToast('Transkription gestartet...');
+                } else {
+                    showToast('Transcription started...');
+                }
+                
+                // Simulate progress (in a real app, this would be actual processing)
+                let progress = 0;
